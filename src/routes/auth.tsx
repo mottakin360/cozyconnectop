@@ -131,6 +131,7 @@ function SignUpForm() {
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState<string | null>(null);
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
 
   useEffect(() => {
@@ -148,7 +149,7 @@ function SignUpForm() {
     e.preventDefault();
     if (usernameStatus !== "available") { toast.error("Pick a valid, available username"); return; }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email, password,
       options: {
         emailRedirectTo: `${window.location.origin}/app`,
@@ -156,9 +157,34 @@ function SignUpForm() {
       },
     });
     setLoading(false);
-    if (error) toast.error(error.message);
-    else toast.success("Account created — welcome!");
+    if (error) { toast.error(error.message); return; }
+    if (data.session) {
+      toast.success("Account created — welcome!");
+    } else {
+      setSubmitted(email);
+    }
   };
+
+  if (submitted) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+        className="rounded-xl border border-border bg-background/40 p-6 text-center"
+      >
+        <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full gradient-primary">
+          <Mail className="h-6 w-6 text-primary-foreground" />
+        </div>
+        <h2 className="text-lg font-semibold">Check your email</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          We sent a confirmation link to <span className="font-medium text-foreground">{submitted}</span>.
+          Click it to activate your account and start chatting.
+        </p>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Didn't get it? Check your spam folder.
+        </p>
+      </motion.div>
+    );
+  }
 
   return (
     <form onSubmit={submit} className="space-y-3">
