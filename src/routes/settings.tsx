@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Avatar } from "@/components/chat/avatar";
 
 export const Route = createFileRoute("/settings")({
-  head: () => ({ meta: [{ title: "Settings — Pulse" }] }),
+  head: () => ({ meta: [{ title: "Settings — Cozy Connect" }] }),
   component: SettingsPage,
 });
 

@@ -7,9 +7,9 @@ import { MessageCircle, Users, Sparkles, Image as ImageIcon, Lock, Zap } from "l
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Pulse — Chat with friends in realtime" },
+      { title: "Cozy Connect — Chat with friends in realtime" },
       { name: "description", content: "Modern realtime chat. Add friends by username, share images, stay connected." },
-      { property: "og:title", content: "Pulse — Modern realtime chat" },
+      { property: "og:title", content: "Cozy Connect — Modern realtime chat" },
       { property: "og:description", content: "Add friends, send messages and images in realtime." },
     ],
   }),
@@ -34,7 +34,7 @@ function Landing() {
           <div className="grid h-9 w-9 place-items-center rounded-xl gradient-primary shadow-glow">
             <MessageCircle className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="text-lg font-bold tracking-tight">Pulse</span>
+          <span className="text-lg font-bold tracking-tight">Cozy Connect</span>
         </div>
         <div className="flex items-center gap-2">
           <Link to="/auth" className="rounded-lg px-4 py-2 text-sm font-medium hover:bg-secondary transition">Sign in</Link>

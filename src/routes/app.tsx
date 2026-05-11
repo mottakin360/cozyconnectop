@@ -27,10 +27,6 @@ function AppLayout() {
     if (!loading && !user) nav({ to: "/auth" });
   }, [loading, user, nav]);
 
-  // close mobile sidebar when route changes to a chat
-  useEffect(() => {
-    if (loc.pathname.includes("/dm/")) setMobileSidebar(false);
-  }, [loc.pathname]);
 
   useEffect(() => {
     if (!user) return;
@@ -74,7 +70,7 @@ function AppLayout() {
                 <div className="grid h-8 w-8 place-items-center rounded-lg gradient-primary shadow-glow">
                   <MessageCircle className="h-4 w-4 text-primary-foreground" />
                 </div>
-                <span className="font-bold tracking-tight">Pulse</span>
+                <span className="font-bold tracking-tight">Cozy Connect</span>
               </Link>
               <button onClick={() => setMobileSidebar(false)} className="rounded-md p-1.5 hover:bg-sidebar-accent md:hidden">
                 <X className="h-4 w-4" />

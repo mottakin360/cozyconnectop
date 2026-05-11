@@ -13,8 +13,8 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Sign in — Pulse" },
-      { name: "description", content: "Sign in or create your Pulse account." },
+      { title: "Sign in — Cozy Connect" },
+      { name: "description", content: "Sign in or create your Cozy Connect account." },
     ],
   }),
   component: AuthPage,
@@ -41,7 +41,7 @@ function AuthPage() {
             <div className="grid h-9 w-9 place-items-center rounded-xl gradient-primary">
               <MessageCircle className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold">Pulse</span>
+            <span className="text-lg font-bold">Cozy Connect</span>
           </Link>
 
           <h1 className="text-2xl font-bold">{mode === "signin" ? "Welcome back" : "Create your account"}</h1>
