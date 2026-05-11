@@ -46,10 +46,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CozyChat" },
+      { title: "CozyConnect" },
       { name: "description", content: "A modern realtime chat experience for friends." },
-      { property: "og:title", content: "CozyChat" },
-      { name: "twitter:title", content: "CozyChat" },
+      { property: "og:title", content: "CozyConnect" },
+      { name: "twitter:title", content: "CozyConnect" },
       { property: "og:description", content: "A modern realtime chat experience for friends." },
       { name: "twitter:description", content: "A modern realtime chat experience for friends." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/18cb91a8-0b35-4c42-9395-48a3d030e61b/id-preview-1e43d637--efd51ff6-4838-4522-96c0-7d4e5cd03ea7.lovable.app-1778335825617.png" },
