@@ -27,10 +27,6 @@ function AppLayout() {
     if (!loading && !user) nav({ to: "/auth" });
   }, [loading, user, nav]);
 
-  // close mobile sidebar when route changes to a chat
-  useEffect(() => {
-    if (loc.pathname.includes("/dm/")) setMobileSidebar(false);
-  }, [loc.pathname]);
 
   useEffect(() => {
     if (!user) return;
