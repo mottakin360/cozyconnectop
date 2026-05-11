@@ -28,9 +28,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (uid: string) => {
+  const fetchProfile = async (uid: string, attempt = 0): Promise<void> => {
     const { data } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
-    setProfile(data as Profile | null);
+    if (data) { setProfile(data as Profile); return; }
+    // Profile row missing (trigger race or failure). Retry briefly, then self-heal by inserting.
+    if (attempt < 3) {
+      await new Promise((r) => setTimeout(r, 400));
+      return fetchProfile(uid, attempt + 1);
+    }
+    const { data: u } = await supabase.auth.getUser();
+    const meta = (u.user?.user_metadata ?? {}) as Record<string, string>;
+    const fallbackBase =
+      (meta.username as string) ||
+      (u.user?.email?.split("@")[0] || "user").replace(/[^a-zA-Z0-9_]/g, "") ||
+      `user${uid.slice(0, 8)}`;
+    const username = fallbackBase.slice(0, 16).toLowerCase();
+    const display_name = (meta.display_name as string) || (meta.full_name as string) || username;
+    const { data: inserted } = await supabase
+      .from("profiles")
+      .insert({ id: uid, username, display_name, avatar_url: meta.avatar_url ?? null })
+      .select("*")
+      .maybeSingle();
+    setProfile((inserted as Profile | null) ?? null);
   };
 
   useEffect(() => {

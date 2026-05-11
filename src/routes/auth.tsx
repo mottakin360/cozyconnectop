@@ -157,7 +157,17 @@ function SignUpForm() {
       },
     });
     setLoading(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      const msg = error.message || "";
+      if (/rate limit|too many/i.test(msg)) {
+        toast.error("Email rate limit hit. Wait a few minutes and try again, or set up a custom SMTP provider in Supabase.");
+      } else if (/already registered|already exists/i.test(msg)) {
+        toast.error("That email is already registered. Try signing in instead.");
+      } else {
+        toast.error(msg);
+      }
+      return;
+    }
     if (data.session) {
       toast.success("Account created — welcome!");
     } else {
