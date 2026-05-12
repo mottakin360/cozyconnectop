@@ -49,7 +49,7 @@ function ChatPage() {
         const ids = (msgs as Message[]).map((m) => m.id);
         if (ids.length) {
           const { data: rxs } = await supabase.from("message_reactions" as any).select("*").in("message_id", ids);
-          if (active) setReactions((rxs ?? []) as Reaction[]);
+          if (active) setReactions((rxs ?? []) as unknown as Reaction[]);
         }
       }
     })();
