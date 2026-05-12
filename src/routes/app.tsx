@@ -86,6 +86,14 @@ function AppLayout() {
                 <Plus className="h-4 w-4" /> Add Friend
               </button>
               <Link
+                to="/app/search"
+                className="grid h-9 w-9 place-items-center rounded-lg border border-sidebar-border hover:bg-sidebar-accent transition"
+                activeProps={{ className: "bg-sidebar-accent" }}
+                title="Search people"
+              >
+                <Search className="h-4 w-4" />
+              </Link>
+              <Link
                 to="/app"
                 className="relative grid h-9 w-9 place-items-center rounded-lg border border-sidebar-border hover:bg-sidebar-accent transition"
                 title="Friend requests"
