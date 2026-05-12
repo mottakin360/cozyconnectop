@@ -35,6 +35,8 @@ function SettingsPage() {
       setDisplayName(profile.display_name);
       setBio(profile.bio ?? "");
       setAccent(profile.accent_color ?? "#5865F2");
+      setNameFont(((profile as any).display_name_font as string) ?? "default");
+      setNameColor(((profile as any).display_name_color as string) ?? "");
       setAvatarUrl(profile.avatar_url);
       setBannerUrl(profile.banner_url);
     }
