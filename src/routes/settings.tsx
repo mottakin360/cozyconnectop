@@ -21,6 +21,8 @@ function SettingsPage() {
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [accent, setAccent] = useState("#5865F2");
+  const [nameFont, setNameFont] = useState<string>("default");
+  const [nameColor, setNameColor] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
