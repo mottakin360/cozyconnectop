@@ -89,6 +89,38 @@ export type Database = {
           },
         ]
       }
+      message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string | null
@@ -96,6 +128,7 @@ export type Database = {
           id: string
           image_url: string | null
           receiver_id: string
+          reply_to_id: string | null
           sender_id: string
         }
         Insert: {
@@ -104,6 +137,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           receiver_id: string
+          reply_to_id?: string | null
           sender_id: string
         }
         Update: {
@@ -112,6 +146,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           receiver_id?: string
+          reply_to_id?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -120,6 +155,13 @@ export type Database = {
             columns: ["receiver_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
           {
@@ -139,6 +181,8 @@ export type Database = {
           bio: string | null
           created_at: string
           display_name: string
+          display_name_color: string | null
+          display_name_font: string | null
           id: string
           updated_at: string
           username: string
@@ -150,6 +194,8 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name: string
+          display_name_color?: string | null
+          display_name_font?: string | null
           id: string
           updated_at?: string
           username: string
@@ -161,6 +207,8 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string
+          display_name_color?: string | null
+          display_name_font?: string | null
           id?: string
           updated_at?: string
           username?: string
