@@ -119,7 +119,7 @@ function RequestRow({ profile, actions }: { profile: Profile; actions: React.Rea
     >
       <Avatar url={profile.avatar_url} name={profile.display_name} accent={profile.accent_color} size={44} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold">{profile.display_name}</p>
+        <p className="truncate text-sm font-semibold" style={displayNameStyle(profile.display_name_font, profile.display_name_color)}>{profile.display_name}</p>
         <p className="truncate text-xs text-muted-foreground">@{profile.username}</p>
       </div>
       <div className="flex gap-2">{actions}</div>
