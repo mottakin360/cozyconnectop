@@ -6,12 +6,13 @@ import { motion } from "framer-motion";
 import { MessageCircle, UserCheck, UserX, Loader2 } from "lucide-react";
 import { Avatar } from "@/components/chat/avatar";
 import { toast } from "sonner";
+import { displayNameStyle } from "@/lib/display-name";
 
 export const Route = createFileRoute("/app/")({
   component: AppHome,
 });
 
-type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; accent_color: string | null };
+type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; accent_color: string | null; display_name_font: string | null; display_name_color: string | null };
 type Request = { id: string; sender_id: string; receiver_id: string; status: string; created_at: string; sender: Profile; receiver: Profile };
 
 function AppHome() {
