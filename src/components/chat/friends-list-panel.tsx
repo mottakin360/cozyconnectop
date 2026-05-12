@@ -16,7 +16,7 @@ export function FriendsListPanel({ currentUserId }: { currentUserId: string }) {
   const load = async () => {
     const { data } = await supabase
       .from("friendships")
-      .select("user_a, user_b, a:user_a(id,username,display_name,avatar_url,accent_color), b:user_b(id,username,display_name,avatar_url,accent_color)")
+      .select("user_a, user_b, a:user_a(id,username,display_name,avatar_url,accent_color,display_name_font,display_name_color), b:user_b(id,username,display_name,avatar_url,accent_color,display_name_font,display_name_color)")
       .or(`user_a.eq.${currentUserId},user_b.eq.${currentUserId}`);
     const list: Profile[] = [];
     for (const row of (data ?? []) as any[]) {
