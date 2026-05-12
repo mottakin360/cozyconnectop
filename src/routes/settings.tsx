@@ -74,7 +74,9 @@ function SettingsPage() {
       accent_color: accent,
       avatar_url: avatarUrl,
       banner_url: bannerUrl,
-    }).eq("id", user.id);
+      display_name_font: nameFont,
+      display_name_color: nameColor || null,
+    } as any).eq("id", user.id);
     setSaving(false);
     if (error) toast.error(error.message);
     else { toast.success("Profile saved"); await refreshProfile(); }
