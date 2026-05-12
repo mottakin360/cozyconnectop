@@ -312,7 +312,7 @@ function ChatPage() {
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPickImage} />
             <input
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={(e) => setText(applyEmojiShortcuts(e.target.value))}
               placeholder={replyTo ? `Reply to @${friend.username}` : `Message @${friend.username}`}
               maxLength={2000}
               className="flex-1 bg-transparent px-1 py-2 text-sm outline-none"
