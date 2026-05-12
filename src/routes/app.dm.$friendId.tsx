@@ -101,7 +101,7 @@ function ChatPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const t = text.trim();
+    const t = applyEmojiShortcuts(text).trim();
     if (!t) return;
     setText("");
     await send(t);
