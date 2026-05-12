@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar } from "./avatar";
 import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
+import { displayNameStyle } from "@/lib/display-name";
 
-type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; accent_color: string | null };
+type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; accent_color: string | null; display_name_font: string | null; display_name_color: string | null };
 
 export function FriendsListPanel({ currentUserId }: { currentUserId: string }) {
   const [friends, setFriends] = useState<Profile[]>([]);
