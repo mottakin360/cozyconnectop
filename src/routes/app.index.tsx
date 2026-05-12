@@ -25,7 +25,7 @@ function AppHome() {
     if (!user) return;
     const { data } = await supabase
       .from("friend_requests")
-      .select("*, sender:sender_id(id,username,display_name,avatar_url,accent_color), receiver:receiver_id(id,username,display_name,avatar_url,accent_color)")
+      .select("*, sender:sender_id(id,username,display_name,avatar_url,accent_color,display_name_font,display_name_color), receiver:receiver_id(id,username,display_name,avatar_url,accent_color,display_name_font,display_name_color)")
       .eq("status", "pending")
       .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
       .order("created_at", { ascending: false });
