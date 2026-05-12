@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Camera, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar } from "@/components/chat/avatar";
+import { FONT_OPTIONS, displayNameStyle } from "@/lib/display-name";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — Cozy Connect" }] }),
