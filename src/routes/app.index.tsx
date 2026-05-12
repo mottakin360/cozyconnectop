@@ -6,12 +6,13 @@ import { motion } from "framer-motion";
 import { MessageCircle, UserCheck, UserX, Loader2 } from "lucide-react";
 import { Avatar } from "@/components/chat/avatar";
 import { toast } from "sonner";
+import { displayNameStyle } from "@/lib/display-name";
 
 export const Route = createFileRoute("/app/")({
   component: AppHome,
 });
 
-type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; accent_color: string | null };
+type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; accent_color: string | null; display_name_font: string | null; display_name_color: string | null };
 type Request = { id: string; sender_id: string; receiver_id: string; status: string; created_at: string; sender: Profile; receiver: Profile };
 
 function AppHome() {
@@ -24,7 +25,7 @@ function AppHome() {
     if (!user) return;
     const { data } = await supabase
       .from("friend_requests")
-      .select("*, sender:sender_id(id,username,display_name,avatar_url,accent_color), receiver:receiver_id(id,username,display_name,avatar_url,accent_color)")
+      .select("*, sender:sender_id(id,username,display_name,avatar_url,accent_color,display_name_font,display_name_color), receiver:receiver_id(id,username,display_name,avatar_url,accent_color,display_name_font,display_name_color)")
       .eq("status", "pending")
       .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
       .order("created_at", { ascending: false });
@@ -118,7 +119,7 @@ function RequestRow({ profile, actions }: { profile: Profile; actions: React.Rea
     >
       <Avatar url={profile.avatar_url} name={profile.display_name} accent={profile.accent_color} size={44} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold">{profile.display_name}</p>
+        <p className="truncate text-sm font-semibold" style={displayNameStyle(profile.display_name_font, profile.display_name_color)}>{profile.display_name}</p>
         <p className="truncate text-xs text-muted-foreground">@{profile.username}</p>
       </div>
       <div className="flex gap-2">{actions}</div>

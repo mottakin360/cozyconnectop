@@ -4,11 +4,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Settings, LogOut, Sun, Moon, Plus, Bell, Menu, X, MessageCircle } from "lucide-react";
+import { Users, Settings, LogOut, Sun, Moon, Plus, Bell, Menu, X, MessageCircle, Search } from "lucide-react";
 import { toast } from "sonner";
 import { FriendsListPanel } from "@/components/chat/friends-list-panel";
 import { AddFriendDialog } from "@/components/chat/add-friend-dialog";
 import { Avatar } from "@/components/chat/avatar";
+import { displayNameStyle } from "@/lib/display-name";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -85,6 +86,14 @@ function AppLayout() {
                 <Plus className="h-4 w-4" /> Add Friend
               </button>
               <Link
+                to="/app/search"
+                className="grid h-9 w-9 place-items-center rounded-lg border border-sidebar-border hover:bg-sidebar-accent transition"
+                activeProps={{ className: "bg-sidebar-accent" }}
+                title="Search people"
+              >
+                <Search className="h-4 w-4" />
+              </Link>
+              <Link
                 to="/app"
                 className="relative grid h-9 w-9 place-items-center rounded-lg border border-sidebar-border hover:bg-sidebar-accent transition"
                 title="Friend requests"
@@ -106,7 +115,7 @@ function AppLayout() {
             <div className="flex items-center gap-2 border-t border-sidebar-border bg-sidebar-accent/40 p-2.5">
               <Avatar url={profile.avatar_url} name={profile.display_name} accent={profile.accent_color} size={36} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{profile.display_name}</p>
+                <p className="truncate text-sm font-semibold" style={displayNameStyle(profile.display_name_font, profile.display_name_color)}>{profile.display_name}</p>
                 <p className="truncate text-xs text-muted-foreground">@{profile.username}</p>
               </div>
               <button onClick={toggle} className="rounded-md p-2 hover:bg-sidebar-accent" title="Toggle theme">

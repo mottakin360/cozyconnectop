@@ -10,6 +10,8 @@ type Profile = {
   avatar_url: string | null;
   banner_url: string | null;
   accent_color: string | null;
+  display_name_font: string | null;
+  display_name_color: string | null;
 };
 
 type AuthCtx = {

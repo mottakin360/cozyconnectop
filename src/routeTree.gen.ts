@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppSearchRouteImport } from './routes/app.search'
 import { Route as AppDmFriendIdRouteImport } from './routes/app.dm.$friendId'
 
 const SettingsRoute = SettingsRouteImport.update({
@@ -41,6 +42,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSearchRoute = AppSearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDmFriendIdRoute = AppDmFriendIdRouteImport.update({
   id: '/dm/$friendId',
   path: '/dm/$friendId',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/settings': typeof SettingsRoute
+  '/app/search': typeof AppSearchRoute
   '/app/': typeof AppIndexRoute
   '/app/dm/$friendId': typeof AppDmFriendIdRoute
 }
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/settings': typeof SettingsRoute
+  '/app/search': typeof AppSearchRoute
   '/app': typeof AppIndexRoute
   '/app/dm/$friendId': typeof AppDmFriendIdRoute
 }
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/settings': typeof SettingsRoute
+  '/app/search': typeof AppSearchRoute
   '/app/': typeof AppIndexRoute
   '/app/dm/$friendId': typeof AppDmFriendIdRoute
 }
@@ -78,16 +87,18 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/settings'
+    | '/app/search'
     | '/app/'
     | '/app/dm/$friendId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/settings' | '/app' | '/app/dm/$friendId'
+  to: '/' | '/auth' | '/settings' | '/app/search' | '/app' | '/app/dm/$friendId'
   id:
     | '__root__'
     | '/'
     | '/app'
     | '/auth'
     | '/settings'
+    | '/app/search'
     | '/app/'
     | '/app/dm/$friendId'
   fileRoutesById: FileRoutesById
@@ -136,6 +147,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/search': {
+      id: '/app/search'
+      path: '/search'
+      fullPath: '/app/search'
+      preLoaderRoute: typeof AppSearchRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/dm/$friendId': {
       id: '/app/dm/$friendId'
       path: '/dm/$friendId'
@@ -147,11 +165,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppSearchRoute: typeof AppSearchRoute
   AppIndexRoute: typeof AppIndexRoute
   AppDmFriendIdRoute: typeof AppDmFriendIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppSearchRoute: AppSearchRoute,
   AppIndexRoute: AppIndexRoute,
   AppDmFriendIdRoute: AppDmFriendIdRoute,
 }

@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar } from "./avatar";
 import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
+import { displayNameStyle } from "@/lib/display-name";
 
-type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; accent_color: string | null };
+type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; accent_color: string | null; display_name_font: string | null; display_name_color: string | null };
 
 export function FriendsListPanel({ currentUserId }: { currentUserId: string }) {
   const [friends, setFriends] = useState<Profile[]>([]);
@@ -15,7 +16,7 @@ export function FriendsListPanel({ currentUserId }: { currentUserId: string }) {
   const load = async () => {
     const { data } = await supabase
       .from("friendships")
-      .select("user_a, user_b, a:user_a(id,username,display_name,avatar_url,accent_color), b:user_b(id,username,display_name,avatar_url,accent_color)")
+      .select("user_a, user_b, a:user_a(id,username,display_name,avatar_url,accent_color,display_name_font,display_name_color), b:user_b(id,username,display_name,avatar_url,accent_color,display_name_font,display_name_color)")
       .or(`user_a.eq.${currentUserId},user_b.eq.${currentUserId}`);
     const list: Profile[] = [];
     for (const row of (data ?? []) as any[]) {
@@ -62,7 +63,7 @@ export function FriendsListPanel({ currentUserId }: { currentUserId: string }) {
                 >
                   <Avatar url={f.avatar_url} name={f.display_name} accent={f.accent_color} size={36} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">{f.display_name}</p>
+                    <p className="truncate text-sm font-semibold" style={displayNameStyle(f.display_name_font, f.display_name_color)}>{f.display_name}</p>
                     <p className="truncate text-xs text-muted-foreground">@{f.username}</p>
                   </div>
                   <MessageCircle className={`h-4 w-4 transition ${active ? "text-primary" : "text-muted-foreground opacity-0 group-hover:opacity-100"}`} />
