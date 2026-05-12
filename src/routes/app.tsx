@@ -4,11 +4,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Settings, LogOut, Sun, Moon, Plus, Bell, Menu, X, MessageCircle } from "lucide-react";
+import { Users, Settings, LogOut, Sun, Moon, Plus, Bell, Menu, X, MessageCircle, Search } from "lucide-react";
 import { toast } from "sonner";
 import { FriendsListPanel } from "@/components/chat/friends-list-panel";
 import { AddFriendDialog } from "@/components/chat/add-friend-dialog";
 import { Avatar } from "@/components/chat/avatar";
+import { displayNameStyle } from "@/lib/display-name";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
