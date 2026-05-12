@@ -111,12 +111,15 @@ function SettingsPage() {
 
           <div className="px-5 pb-5">
             <div className="-mt-10 flex items-end gap-4">
-              <button type="button" onClick={() => avatarRef.current?.click()} className="group relative">
+              <button type="button" onClick={() => avatarRef.current?.click()} className="group relative" title="Change profile picture">
                 <Avatar url={avatarUrl} name={displayName || profile.username} accent={accent} size={84} ring />
                 <div className="absolute inset-0 grid place-items-center rounded-full bg-black/40 opacity-0 transition group-hover:opacity-100">
                   <Camera className="h-5 w-5 text-white" />
                 </div>
                 <input ref={avatarRef} type="file" accept="image/*" hidden onChange={onAvatar} />
+              </button>
+              <button type="button" onClick={() => avatarRef.current?.click()} className="mb-1 flex items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium hover:bg-secondary">
+                <Camera className="h-3.5 w-3.5" /> Change picture
               </button>
             </div>
 
@@ -125,7 +128,45 @@ function SettingsPage() {
                 <input value={profile.username} disabled className="w-full cursor-not-allowed rounded-lg border border-border bg-muted px-3 py-2 text-sm text-muted-foreground" />
               </Field>
               <Field label="Display name">
-                <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} maxLength={40} className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring" />
+                <input
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  maxLength={40}
+                  style={displayNameStyle(nameFont, nameColor)}
+                  className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+                <div className="mt-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+                  Preview: <span className="ml-1 text-base font-bold" style={displayNameStyle(nameFont, nameColor)}>{displayName || profile.username}</span>
+                </div>
+              </Field>
+              <Field label="Display name font">
+                <div className="flex flex-wrap gap-2">
+                  {FONT_OPTIONS.map((f) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => setNameFont(f.id)}
+                      style={{ fontFamily: f.css || undefined }}
+                      className={`rounded-lg border px-3 py-1.5 text-sm transition ${nameFont === f.id ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </Field>
+              <Field label="Display name color">
+                <div className="flex flex-wrap items-center gap-2">
+                  <button type="button" onClick={() => setNameColor("")}
+                    className={`h-8 rounded-full border-2 px-3 text-xs transition ${!nameColor ? "border-foreground" : "border-transparent bg-muted"}`}>
+                    Default
+                  </button>
+                  {PRESET_COLORS.map((c) => (
+                    <button key={c} type="button" onClick={() => setNameColor(c)}
+                      className={`h-8 w-8 rounded-full border-2 transition ${nameColor === c ? "border-foreground scale-110" : "border-transparent"}`}
+                      style={{ background: c }} />
+                  ))}
+                  <input type="color" value={nameColor || "#ffffff"} onChange={(e) => setNameColor(e.target.value)} className="h-8 w-10 cursor-pointer rounded-md border border-border bg-transparent" />
+                </div>
               </Field>
               <Field label="Bio">
                 <textarea value={bio} onChange={(e) => setBio(e.target.value)} maxLength={200} rows={3} placeholder="A short bio..." className="w-full resize-none rounded-lg border border-border bg-input px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring" />
