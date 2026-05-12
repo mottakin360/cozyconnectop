@@ -63,7 +63,7 @@ export function FriendsListPanel({ currentUserId }: { currentUserId: string }) {
                 >
                   <Avatar url={f.avatar_url} name={f.display_name} accent={f.accent_color} size={36} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold">{f.display_name}</p>
+                    <p className="truncate text-sm font-semibold" style={displayNameStyle(f.display_name_font, f.display_name_color)}>{f.display_name}</p>
                     <p className="truncate text-xs text-muted-foreground">@{f.username}</p>
                   </div>
                   <MessageCircle className={`h-4 w-4 transition ${active ? "text-primary" : "text-muted-foreground opacity-0 group-hover:opacity-100"}`} />
