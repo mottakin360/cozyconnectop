@@ -7,6 +7,7 @@ import { Send, ImagePlus, Loader2, ArrowLeft, Smile, Reply, X, SmilePlus } from 
 import { Avatar } from "@/components/chat/avatar";
 import { toast } from "sonner";
 import { displayNameStyle } from "@/lib/display-name";
+import { applyEmojiShortcuts } from "@/lib/emoji-shortcuts";
 
 export const Route = createFileRoute("/app/dm/$friendId")({
   component: ChatPage,
