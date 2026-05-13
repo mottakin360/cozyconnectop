@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, ImagePlus, Loader2, ArrowLeft, Smile, Reply, X, SmilePlus } from "lucide-react";
+import { Send, ImagePlus, Loader2, ArrowLeft, Smile, Reply, X, SmilePlus, Trash2, Check, CheckCheck } from "lucide-react";
 import { Avatar } from "@/components/chat/avatar";
 import { toast } from "sonner";
 import { displayNameStyle } from "@/lib/display-name";
@@ -14,7 +14,7 @@ export const Route = createFileRoute("/app/dm/$friendId")({
 });
 
 type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; banner_url: string | null; bio: string | null; accent_color: string | null; display_name_font?: string | null; display_name_color?: string | null };
-type Message = { id: string; sender_id: string; receiver_id: string; content: string | null; image_url: string | null; created_at: string; reply_to_id?: string | null };
+type Message = { id: string; sender_id: string; receiver_id: string; content: string | null; image_url: string | null; created_at: string; reply_to_id?: string | null; read_at?: string | null };
 type Reaction = { id: string; message_id: string; user_id: string; emoji: string };
 
 const QUICK_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🔥", "🎉", "👀"];
@@ -30,8 +30,14 @@ function ChatPage() {
   const [uploading, setUploading] = useState(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [pickerFor, setPickerFor] = useState<string | null>(null);
+  const [menuFor, setMenuFor] = useState<string | null>(null);
+  const [friendTyping, setFriendTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const typingTimerRef = useRef<number | null>(null);
+  const lastTypingSentRef = useRef<number>(0);
+  const friendTypingTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -57,13 +63,23 @@ function ChatPage() {
     return () => { active = false; };
   }, [user, friendId]);
 
+  // Realtime: messages + reactions + typing broadcast
   useEffect(() => {
     if (!user) return;
-    const ch = supabase.channel(`dm-${user.id}-${friendId}`)
+    const roomKey = [user.id, friendId].sort().join("-");
+    const ch = supabase.channel(`dm-room-${roomKey}`, { config: { broadcast: { self: false } } })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (payload) => {
         const m = payload.new as Message;
         const involved = (m.sender_id === user.id && m.receiver_id === friendId) || (m.sender_id === friendId && m.receiver_id === user.id);
         if (involved) setMessages((prev) => prev.some((x) => x.id === m.id) ? prev : [...prev, m]);
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages" }, (payload) => {
+        const m = payload.new as Message;
+        setMessages((prev) => prev.map((x) => x.id === m.id ? { ...x, ...m } : x));
+      })
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "messages" }, (payload) => {
+        const m = payload.old as Message;
+        setMessages((prev) => prev.filter((x) => x.id !== m.id));
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "message_reactions" }, (payload) => {
         const r = payload.new as Reaction;
@@ -73,19 +89,50 @@ function ChatPage() {
         const r = payload.old as Reaction;
         setReactions((prev) => prev.filter((x) => x.id !== r.id));
       })
+      .on("broadcast", { event: "typing" }, (payload) => {
+        const from = (payload.payload as any)?.from;
+        if (from === friendId) {
+          setFriendTyping(true);
+          if (friendTypingTimerRef.current) window.clearTimeout(friendTypingTimerRef.current);
+          friendTypingTimerRef.current = window.setTimeout(() => setFriendTyping(false), 2500);
+        }
+      })
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    channelRef.current = ch;
+    return () => {
+      if (friendTypingTimerRef.current) window.clearTimeout(friendTypingTimerRef.current);
+      supabase.removeChannel(ch);
+      channelRef.current = null;
+    };
   }, [user, friendId]);
+
+  // Mark incoming unread messages as read
+  useEffect(() => {
+    if (!user) return;
+    const unreadIds = messages.filter((m) => m.receiver_id === user.id && m.sender_id === friendId && !m.read_at).map((m) => m.id);
+    if (unreadIds.length === 0) return;
+    (async () => {
+      await (supabase as any).from("messages").update({ read_at: new Date().toISOString() }).in("id", unreadIds);
+    })();
+  }, [messages, user, friendId]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
+  }, [messages, friendTyping]);
 
   const messagesById = useMemo(() => {
     const m = new Map<string, Message>();
     messages.forEach((x) => m.set(x.id, x));
     return m;
   }, [messages]);
+
+  const sendTyping = () => {
+    const now = Date.now();
+    if (!channelRef.current || !user) return;
+    if (now - lastTypingSentRef.current < 1200) return;
+    lastTypingSentRef.current = now;
+    channelRef.current.send({ type: "broadcast", event: "typing", payload: { from: user.id } });
+  };
 
   const send = async (content?: string, image_url?: string) => {
     if (!user) return;
@@ -104,6 +151,7 @@ function ChatPage() {
     const t = applyEmojiShortcuts(text).trim();
     if (!t) return;
     setText("");
+    if (typingTimerRef.current) { window.clearTimeout(typingTimerRef.current); typingTimerRef.current = null; }
     await send(t);
   };
 
@@ -132,6 +180,13 @@ function ChatPage() {
       if (error) toast.error(error.message);
     }
     setPickerFor(null);
+  };
+
+  const unsendMessage = async (id: string) => {
+    setMenuFor(null);
+    const { error } = await supabase.from("messages").delete().eq("id", id);
+    if (error) toast.error(error.message);
+    else setMessages((prev) => prev.filter((m) => m.id !== id));
   };
 
   if (!friend) {
@@ -184,6 +239,7 @@ function ChatPage() {
                   layout
                   initial={{ opacity: 0, y: 8, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
                   className={`group/msg relative flex gap-2 ${mine ? "justify-end" : "justify-start"} ${groupStart ? "mt-3" : ""}`}
                 >
                   {!mine && groupStart && <Avatar url={friend.avatar_url} name={friend.display_name} accent={friend.accent_color} size={32} />}
@@ -218,6 +274,17 @@ function ChatPage() {
                         {m.content}
                       </div>
                     )}
+                    {/* Read receipts on my messages */}
+                    {mine && (
+                      <div className="mt-0.5 flex items-center gap-0.5 self-end px-1 text-[10px] text-muted-foreground">
+                        {m.read_at ? (
+                          <CheckCheck className="h-3.5 w-3.5" style={{ color: accent }} />
+                        ) : (
+                          <CheckCheck className="h-3.5 w-3.5 opacity-60" />
+                        )}
+                        <span className="opacity-70">{m.read_at ? "Seen" : "Sent"}</span>
+                      </div>
+                    )}
                     {Object.keys(rxGroups).length > 0 && (
                       <div className={`mt-1 flex flex-wrap gap-1 ${mine ? "justify-end" : "justify-start"}`}>
                         {Object.entries(rxGroups).map(([emoji, list]) => {
@@ -237,38 +304,44 @@ function ChatPage() {
                     )}
                   </div>
 
-                  {/* Hover actions — only for messages from the other person */}
+                  {/* Hover actions — react/reply for the other person */}
                   {!mine && (
                     <div className="absolute -top-3 left-10 z-10 hidden items-center gap-1 rounded-lg border border-border bg-card p-0.5 shadow-soft group-hover/msg:flex">
-                      <button
-                        onClick={() => setPickerFor(pickerFor === m.id ? null : m.id)}
-                        className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
-                        title="React"
-                      >
+                      <button onClick={() => setPickerFor(pickerFor === m.id ? null : m.id)} className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground" title="React">
                         <SmilePlus className="h-4 w-4" />
                       </button>
-                      <button
-                        onClick={() => setReplyTo(m)}
-                        className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
-                        title="Reply"
-                      >
+                      <button onClick={() => setReplyTo(m)} className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground" title="Reply">
                         <Reply className="h-4 w-4" />
                       </button>
                     </div>
                   )}
 
+                  {/* Hover actions — unsend on my own messages */}
+                  {mine && (
+                    <div className="absolute -top-3 right-2 z-10 hidden items-center gap-1 rounded-lg border border-border bg-card p-0.5 shadow-soft group-hover/msg:flex">
+                      <button onClick={() => setMenuFor(menuFor === m.id ? null : m.id)} className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-destructive/15 hover:text-destructive" title="Unsend">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  {menuFor === m.id && mine && (
+                    <motion.div initial={{ opacity: 0, y: 4, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+                      className="absolute -top-12 right-2 z-20 flex items-center gap-1 rounded-lg border border-border bg-card p-1 shadow-glow">
+                      <button onClick={() => unsendMessage(m.id)} className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold text-destructive hover:bg-destructive/10">
+                        <Trash2 className="h-3.5 w-3.5" /> Unsend
+                      </button>
+                      <button onClick={() => setMenuFor(null)} className="grid h-6 w-6 place-items-center rounded-md text-muted-foreground hover:bg-secondary">
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </motion.div>
+                  )}
+
                   {pickerFor === m.id && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 4, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      className="absolute -top-12 left-10 z-20 flex items-center gap-0.5 rounded-full border border-border bg-card px-1.5 py-1 shadow-glow"
-                    >
+                    <motion.div initial={{ opacity: 0, y: 4, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+                      className="absolute -top-12 left-10 z-20 flex items-center gap-0.5 rounded-full border border-border bg-card px-1.5 py-1 shadow-glow">
                       {QUICK_EMOJIS.map((e) => (
-                        <button
-                          key={e}
-                          onClick={() => toggleReaction(m.id, e)}
-                          className="h-8 w-8 rounded-full text-lg transition hover:scale-125 hover:bg-secondary"
-                        >
+                        <button key={e} onClick={() => toggleReaction(m.id, e)} className="h-8 w-8 rounded-full text-lg transition hover:scale-125 hover:bg-secondary">
                           {e}
                         </button>
                       ))}
@@ -278,7 +351,31 @@ function ChatPage() {
               );
             })}
           </AnimatePresence>
-          {messages.length === 0 && (
+
+          {/* Typing indicator */}
+          <AnimatePresence>
+            {friendTyping && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 6 }}
+                className="mt-2 flex items-center gap-2"
+              >
+                <Avatar url={friend.avatar_url} name={friend.display_name} accent={friend.accent_color} size={28} />
+                <div className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-bubble-other px-3.5 py-2.5 shadow-soft">
+                  {[0, 150, 300].map((d) => (
+                    <span
+                      key={d}
+                      className="inline-block h-1.5 w-1.5 rounded-full bg-muted-foreground"
+                      style={{ animation: `typing-bounce 1s ${d}ms infinite ease-in-out` }}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {messages.length === 0 && !friendTyping && (
             <div className="grid place-items-center py-20 text-center">
               <Smile className="h-10 w-10 text-muted-foreground" />
               <p className="mt-3 text-sm text-muted-foreground">Say hi to <span style={friendNameStyle}>{friend.display_name}</span>!</p>
@@ -312,7 +409,7 @@ function ChatPage() {
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPickImage} />
             <input
               value={text}
-              onChange={(e) => setText(applyEmojiShortcuts(e.target.value))}
+              onChange={(e) => { setText(applyEmojiShortcuts(e.target.value)); sendTyping(); }}
               placeholder={replyTo ? `Reply to @${friend.username}` : `Message @${friend.username}`}
               maxLength={2000}
               className="flex-1 bg-transparent px-1 py-2 text-sm outline-none"
