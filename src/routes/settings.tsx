@@ -139,7 +139,7 @@ function SettingsPage() {
                   className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
                 <div className="mt-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-                  Preview: <span className="ml-1 text-base font-bold" style={displayNameStyle(nameFont, nameColor)}>{displayName || profile.username}</span>
+                  Preview: <span className={`ml-1 text-base font-bold ${displayNameClass(nameAnim)}`} style={displayNameStyle(nameFont, nameColor)}>{displayName || profile.username}</span>
                 </div>
               </Field>
               <Field label="Display name font">
