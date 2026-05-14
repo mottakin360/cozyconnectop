@@ -250,8 +250,9 @@ function ChatPage() {
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin px-3 py-4 md:px-6">
-        <div className="mx-auto flex max-w-3xl flex-col gap-1.5">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin px-3 py-4 md:px-6 relative" style={{ background: theme.background }}>
+        {chatSettings.theme_type === "image" && <div className="pointer-events-none absolute inset-0 bg-black/30" />}
+        <div className="relative">
           <AnimatePresence initial={false}>
             {messages.map((m, i) => {
               const mine = m.sender_id === user!.id;
