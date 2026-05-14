@@ -171,6 +171,16 @@ function SettingsPage() {
                   <input type="color" value={nameColor || "#ffffff"} onChange={(e) => setNameColor(e.target.value)} className="h-8 w-10 cursor-pointer rounded-md border border-border bg-transparent" />
                 </div>
               </Field>
+              <Field label="Display name animation">
+                <div className="flex flex-wrap gap-2">
+                  {ANIMATION_OPTIONS.map((a) => (
+                    <button key={a.id} type="button" onClick={() => setNameAnim(a.id)}
+                      className={`rounded-lg border px-3 py-1.5 text-sm transition ${nameAnim === a.id ? "border-primary bg-primary/10" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}>
+                      <span className={a.className} style={displayNameStyle(nameFont, nameColor)}>{a.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </Field>
               <Field label="Bio">
                 <textarea value={bio} onChange={(e) => setBio(e.target.value)} maxLength={200} rows={3} placeholder="A short bio..." className="w-full resize-none rounded-lg border border-border bg-input px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring" />
               </Field>
