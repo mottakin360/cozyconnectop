@@ -51,6 +51,11 @@ function ChatPage() {
     (async () => {
       const { data: p } = await supabase.from("profiles").select("*").eq("id", friendId).maybeSingle();
       if (active) setFriend(p as Profile | null);
+      const { data: cs } = await (supabase as any)
+        .from("chat_settings")
+        .select("nickname,theme_type,theme_value,blocked")
+        .eq("user_id", user.id).eq("friend_id", friendId).maybeSingle();
+      if (active && cs) setChatSettings({ nickname: cs.nickname, theme_type: cs.theme_type || "preset", theme_value: cs.theme_value || "default", blocked: !!cs.blocked });
       const { data: msgs } = await supabase
         .from("messages")
         .select("*")
