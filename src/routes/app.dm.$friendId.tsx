@@ -413,6 +413,12 @@ function ChatPage() {
       </div>
 
       {/* Composer */}
+      {isBlocked ? (
+        <div className="border-t border-border bg-card/60 p-4 text-center text-sm text-muted-foreground">
+          <Ban className="mx-auto mb-2 h-5 w-5" />
+          You blocked {shownName}. Open chat settings to unblock.
+        </div>
+      ) : (
       <form onSubmit={onSubmit} className="border-t border-border bg-card/60 p-3 backdrop-blur md:p-4">
         <div className="mx-auto max-w-3xl">
           {replyTo && (
@@ -420,7 +426,7 @@ function ChatPage() {
               <Reply className="h-3.5 w-3.5 text-muted-foreground" />
               <div className="min-w-0 flex-1">
                 <div className="font-semibold">
-                  Replying to <span style={friendNameStyle}>{friend.display_name}</span>
+                  Replying to <span style={friendNameStyle}>{shownName}</span>
                 </div>
                 <div className="truncate text-muted-foreground">{replyTo.content || (replyTo.image_url ? "📷 Image" : "")}</div>
               </div>
@@ -452,6 +458,18 @@ function ChatPage() {
           </div>
         </div>
       </form>
+      )}
+
+      <ChatSettingsSheet
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        userId={user!.id}
+        friendId={friend.id}
+        friendDisplayName={friend.display_name}
+        fallbackAccent={accent}
+        initial={chatSettings}
+        onSaved={(s) => setChatSettings(s)}
+      />
     </div>
   );
 }
