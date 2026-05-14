@@ -78,6 +78,7 @@ function SettingsPage() {
       banner_url: bannerUrl,
       display_name_font: nameFont,
       display_name_color: nameColor || null,
+      display_name_animation: nameAnim,
     } as any).eq("id", user.id);
     setSaving(false);
     if (error) toast.error(error.message);
