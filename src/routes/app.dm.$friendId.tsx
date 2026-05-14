@@ -3,17 +3,20 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, ImagePlus, Loader2, ArrowLeft, Smile, Reply, X, SmilePlus, Trash2, Check, CheckCheck } from "lucide-react";
+import { Send, ImagePlus, Loader2, ArrowLeft, Smile, Reply, X, SmilePlus, Trash2, CheckCheck, Settings as SettingsIcon, Phone, Ban } from "lucide-react";
 import { Avatar } from "@/components/chat/avatar";
 import { toast } from "sonner";
-import { displayNameStyle } from "@/lib/display-name";
+import { displayNameStyle, displayNameClass } from "@/lib/display-name";
 import { applyEmojiShortcuts } from "@/lib/emoji-shortcuts";
+import { ChatSettingsSheet, type ChatSettings } from "@/components/chat/chat-settings-sheet";
+import { resolveTheme } from "@/lib/chat-themes";
+import { useCall } from "@/hooks/use-call";
 
 export const Route = createFileRoute("/app/dm/$friendId")({
   component: ChatPage,
 });
 
-type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; banner_url: string | null; bio: string | null; accent_color: string | null; display_name_font?: string | null; display_name_color?: string | null };
+type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; banner_url: string | null; bio: string | null; accent_color: string | null; display_name_font?: string | null; display_name_color?: string | null; display_name_animation?: string | null };
 type Message = { id: string; sender_id: string; receiver_id: string; content: string | null; image_url: string | null; created_at: string; reply_to_id?: string | null; read_at?: string | null };
 type Reaction = { id: string; message_id: string; user_id: string; emoji: string };
 
