@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Camera, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar } from "@/components/chat/avatar";
-import { FONT_OPTIONS, displayNameStyle } from "@/lib/display-name";
+import { FONT_OPTIONS, ANIMATION_OPTIONS, displayNameStyle, displayNameClass } from "@/lib/display-name";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — Cozy Connect" }] }),
@@ -23,6 +23,7 @@ function SettingsPage() {
   const [accent, setAccent] = useState("#5865F2");
   const [nameFont, setNameFont] = useState<string>("default");
   const [nameColor, setNameColor] = useState<string>("");
+  const [nameAnim, setNameAnim] = useState<string>("none");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -37,6 +38,7 @@ function SettingsPage() {
       setAccent(profile.accent_color ?? "#5865F2");
       setNameFont(((profile as any).display_name_font as string) ?? "default");
       setNameColor(((profile as any).display_name_color as string) ?? "");
+      setNameAnim(((profile as any).display_name_animation as string) ?? "none");
       setAvatarUrl(profile.avatar_url);
       setBannerUrl(profile.banner_url);
     }
@@ -76,6 +78,7 @@ function SettingsPage() {
       banner_url: bannerUrl,
       display_name_font: nameFont,
       display_name_color: nameColor || null,
+      display_name_animation: nameAnim,
     } as any).eq("id", user.id);
     setSaving(false);
     if (error) toast.error(error.message);
@@ -136,7 +139,7 @@ function SettingsPage() {
                   className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
                 <div className="mt-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-                  Preview: <span className="ml-1 text-base font-bold" style={displayNameStyle(nameFont, nameColor)}>{displayName || profile.username}</span>
+                  Preview: <span className={`ml-1 text-base font-bold ${displayNameClass(nameAnim)}`} style={displayNameStyle(nameFont, nameColor)}>{displayName || profile.username}</span>
                 </div>
               </Field>
               <Field label="Display name font">
@@ -166,6 +169,16 @@ function SettingsPage() {
                       style={{ background: c }} />
                   ))}
                   <input type="color" value={nameColor || "#ffffff"} onChange={(e) => setNameColor(e.target.value)} className="h-8 w-10 cursor-pointer rounded-md border border-border bg-transparent" />
+                </div>
+              </Field>
+              <Field label="Display name animation">
+                <div className="flex flex-wrap gap-2">
+                  {ANIMATION_OPTIONS.map((a) => (
+                    <button key={a.id} type="button" onClick={() => setNameAnim(a.id)}
+                      className={`rounded-lg border px-3 py-1.5 text-sm transition ${nameAnim === a.id ? "border-primary bg-primary/10" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}>
+                      <span className={a.className} style={displayNameStyle(nameFont, nameColor)}>{a.label}</span>
+                    </button>
+                  ))}
                 </div>
               </Field>
               <Field label="Bio">

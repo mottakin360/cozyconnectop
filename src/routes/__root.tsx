@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
+import { CallProvider } from "@/hooks/use-call";
+import { CallOverlay } from "@/components/chat/call-overlay";
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
@@ -88,8 +90,11 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Outlet />
-        <Toaster theme="dark" position="top-right" richColors />
+        <CallProvider>
+          <Outlet />
+          <CallOverlay />
+          <Toaster theme="dark" position="top-right" richColors />
+        </CallProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

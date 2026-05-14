@@ -3,17 +3,20 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, ImagePlus, Loader2, ArrowLeft, Smile, Reply, X, SmilePlus, Trash2, Check, CheckCheck } from "lucide-react";
+import { Send, ImagePlus, Loader2, ArrowLeft, Smile, Reply, X, SmilePlus, Trash2, CheckCheck, Settings as SettingsIcon, Phone, Ban } from "lucide-react";
 import { Avatar } from "@/components/chat/avatar";
 import { toast } from "sonner";
-import { displayNameStyle } from "@/lib/display-name";
+import { displayNameStyle, displayNameClass } from "@/lib/display-name";
 import { applyEmojiShortcuts } from "@/lib/emoji-shortcuts";
+import { ChatSettingsSheet, type ChatSettings } from "@/components/chat/chat-settings-sheet";
+import { resolveTheme } from "@/lib/chat-themes";
+import { useCall } from "@/hooks/use-call";
 
 export const Route = createFileRoute("/app/dm/$friendId")({
   component: ChatPage,
 });
 
-type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; banner_url: string | null; bio: string | null; accent_color: string | null; display_name_font?: string | null; display_name_color?: string | null };
+type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; banner_url: string | null; bio: string | null; accent_color: string | null; display_name_font?: string | null; display_name_color?: string | null; display_name_animation?: string | null };
 type Message = { id: string; sender_id: string; receiver_id: string; content: string | null; image_url: string | null; created_at: string; reply_to_id?: string | null; read_at?: string | null };
 type Reaction = { id: string; message_id: string; user_id: string; emoji: string };
 
@@ -22,6 +25,7 @@ const QUICK_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🔥", "🎉", 
 function ChatPage() {
   const { friendId } = Route.useParams();
   const { user } = useAuth();
+  const call = useCall();
   const [friend, setFriend] = useState<Profile | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [reactions, setReactions] = useState<Reaction[]>([]);
@@ -32,6 +36,8 @@ function ChatPage() {
   const [pickerFor, setPickerFor] = useState<string | null>(null);
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [friendTyping, setFriendTyping] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [chatSettings, setChatSettings] = useState<ChatSettings>({ nickname: null, theme_type: "preset", theme_value: "default", blocked: false });
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -45,6 +51,11 @@ function ChatPage() {
     (async () => {
       const { data: p } = await supabase.from("profiles").select("*").eq("id", friendId).maybeSingle();
       if (active) setFriend(p as Profile | null);
+      const { data: cs } = await (supabase as any)
+        .from("chat_settings")
+        .select("nickname,theme_type,theme_value,blocked")
+        .eq("user_id", user.id).eq("friend_id", friendId).maybeSingle();
+      if (active && cs) setChatSettings({ nickname: cs.nickname, theme_type: cs.theme_type || "preset", theme_value: cs.theme_value || "default", blocked: !!cs.blocked });
       const { data: msgs } = await supabase
         .from("messages")
         .select("*")
@@ -195,6 +206,14 @@ function ChatPage() {
 
   const accent = friend.accent_color || "var(--primary)";
   const friendNameStyle = displayNameStyle(friend.display_name_font, friend.display_name_color);
+  const friendNameAnim = displayNameClass(friend.display_name_animation);
+  const shownName = chatSettings.nickname || friend.display_name;
+  const theme = resolveTheme(chatSettings.theme_type, chatSettings.theme_value, accent);
+  const isBlocked = chatSettings.blocked;
+  const onCall = () => {
+    if (isBlocked) { toast.error("Unblock to call"); return; }
+    call.startCall(friend.id, shownName, friend.avatar_url);
+  };
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -213,18 +232,27 @@ function ChatPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div className="-mt-10">
-            <Avatar url={friend.avatar_url} name={friend.display_name} accent={friend.accent_color} size={64} ring />
+            <Avatar url={friend.avatar_url} name={shownName} accent={friend.accent_color} size={64} ring />
           </div>
           <div className="min-w-0 flex-1 pb-1">
-            <h2 className="truncate text-lg font-bold" style={friendNameStyle}>{friend.display_name}</h2>
+            <h2 className={`truncate text-lg font-bold ${chatSettings.nickname ? "" : friendNameAnim}`} style={chatSettings.nickname ? undefined : friendNameStyle}>{shownName}</h2>
             <p className="truncate text-xs text-muted-foreground">@{friend.username} {friend.bio && <span className="ml-2 italic opacity-80">· {friend.bio}</span>}</p>
+          </div>
+          <div className="flex items-center gap-1.5 pb-1">
+            <button onClick={onCall} disabled={isBlocked} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground transition disabled:opacity-40" title="Voice call">
+              <Phone className="h-4 w-4" />
+            </button>
+            <button onClick={() => setSettingsOpen(true)} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground transition" title="Chat settings">
+              <SettingsIcon className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin px-3 py-4 md:px-6">
-        <div className="mx-auto flex max-w-3xl flex-col gap-1.5">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin px-3 py-4 md:px-6 relative" style={{ background: theme.background }}>
+        {chatSettings.theme_type === "image" && <div className="pointer-events-none absolute inset-0 bg-black/30" />}
+        <div className="relative mx-auto flex max-w-3xl flex-col gap-1.5">
           <AnimatePresence initial={false}>
             {messages.map((m, i) => {
               const mine = m.sender_id === user!.id;
@@ -385,6 +413,12 @@ function ChatPage() {
       </div>
 
       {/* Composer */}
+      {isBlocked ? (
+        <div className="border-t border-border bg-card/60 p-4 text-center text-sm text-muted-foreground">
+          <Ban className="mx-auto mb-2 h-5 w-5" />
+          You blocked {shownName}. Open chat settings to unblock.
+        </div>
+      ) : (
       <form onSubmit={onSubmit} className="border-t border-border bg-card/60 p-3 backdrop-blur md:p-4">
         <div className="mx-auto max-w-3xl">
           {replyTo && (
@@ -392,7 +426,7 @@ function ChatPage() {
               <Reply className="h-3.5 w-3.5 text-muted-foreground" />
               <div className="min-w-0 flex-1">
                 <div className="font-semibold">
-                  Replying to <span style={friendNameStyle}>{friend.display_name}</span>
+                  Replying to <span style={friendNameStyle}>{shownName}</span>
                 </div>
                 <div className="truncate text-muted-foreground">{replyTo.content || (replyTo.image_url ? "📷 Image" : "")}</div>
               </div>
@@ -424,6 +458,18 @@ function ChatPage() {
           </div>
         </div>
       </form>
+      )}
+
+      <ChatSettingsSheet
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        userId={user!.id}
+        friendId={friend.id}
+        friendDisplayName={friend.display_name}
+        fallbackAccent={accent}
+        initial={chatSettings}
+        onSaved={(s) => setChatSettings(s)}
+      />
     </div>
   );
 }
