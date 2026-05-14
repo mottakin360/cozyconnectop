@@ -25,6 +25,7 @@ const QUICK_EMOJIS = ["👍", "❤️", "😂", "😮", "😢", "🔥", "🎉", 
 function ChatPage() {
   const { friendId } = Route.useParams();
   const { user } = useAuth();
+  const call = useCall();
   const [friend, setFriend] = useState<Profile | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [reactions, setReactions] = useState<Reaction[]>([]);
@@ -35,6 +36,8 @@ function ChatPage() {
   const [pickerFor, setPickerFor] = useState<string | null>(null);
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [friendTyping, setFriendTyping] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [chatSettings, setChatSettings] = useState<ChatSettings>({ nickname: null, theme_type: "preset", theme_value: "default", blocked: false });
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
