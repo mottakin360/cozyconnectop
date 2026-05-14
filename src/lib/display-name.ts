@@ -17,10 +17,24 @@ export const FONT_OPTIONS: { id: string; label: string; css: string }[] = [
   { id: "playful", label: "Playful", css: "'Fredoka', 'Quicksand', 'Comic Neue', sans-serif" },
 ];
 
+export const ANIMATION_OPTIONS: { id: string; label: string; className: string }[] = [
+  { id: "none", label: "None", className: "" },
+  { id: "rainbow", label: "Rainbow", className: "dn-anim-rainbow" },
+  { id: "glow", label: "Glow Pulse", className: "dn-anim-glow" },
+  { id: "shimmer", label: "Shimmer", className: "dn-anim-shimmer" },
+  { id: "bounce", label: "Bounce", className: "dn-anim-bounce" },
+  { id: "gradient", label: "Gradient Flow", className: "dn-anim-gradient" },
+];
+
 export function displayNameStyle(font?: string | null, color?: string | null): React.CSSProperties {
   const f = FONT_OPTIONS.find((o) => o.id === (font || "default"));
   const s: React.CSSProperties = {};
   if (f && f.css) s.fontFamily = f.css;
   if (color) s.color = color;
   return s;
+}
+
+export function displayNameClass(animation?: string | null): string {
+  const a = ANIMATION_OPTIONS.find((o) => o.id === (animation || "none"));
+  return a?.className ?? "";
 }
