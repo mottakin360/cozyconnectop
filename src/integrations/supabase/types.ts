@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_settings: {
+        Row: {
+          blocked: boolean
+          created_at: string
+          friend_id: string
+          id: string
+          nickname: string | null
+          theme_type: string | null
+          theme_value: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          blocked?: boolean
+          created_at?: string
+          friend_id: string
+          id?: string
+          nickname?: string | null
+          theme_type?: string | null
+          theme_value?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          blocked?: boolean
+          created_at?: string
+          friend_id?: string
+          id?: string
+          nickname?: string | null
+          theme_type?: string | null
+          theme_value?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       friend_requests: {
         Row: {
           created_at: string
@@ -184,6 +220,7 @@ export type Database = {
           bio: string | null
           created_at: string
           display_name: string
+          display_name_animation: string | null
           display_name_color: string | null
           display_name_font: string | null
           id: string
@@ -197,6 +234,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name: string
+          display_name_animation?: string | null
           display_name_color?: string | null
           display_name_font?: string | null
           id: string
@@ -210,6 +248,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string
+          display_name_animation?: string | null
           display_name_color?: string | null
           display_name_font?: string | null
           id?: string
