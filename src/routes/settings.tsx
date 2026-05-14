@@ -23,6 +23,7 @@ function SettingsPage() {
   const [accent, setAccent] = useState("#5865F2");
   const [nameFont, setNameFont] = useState<string>("default");
   const [nameColor, setNameColor] = useState<string>("");
+  const [nameAnim, setNameAnim] = useState<string>("none");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
