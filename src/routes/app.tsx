@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { FriendsListPanel } from "@/components/chat/friends-list-panel";
 import { AddFriendDialog } from "@/components/chat/add-friend-dialog";
 import { Avatar } from "@/components/chat/avatar";
-import { displayNameStyle } from "@/lib/display-name";
+import { displayNameStyle, displayNameClass } from "@/lib/display-name";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
