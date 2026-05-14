@@ -206,6 +206,14 @@ function ChatPage() {
 
   const accent = friend.accent_color || "var(--primary)";
   const friendNameStyle = displayNameStyle(friend.display_name_font, friend.display_name_color);
+  const friendNameAnim = displayNameClass(friend.display_name_animation);
+  const shownName = chatSettings.nickname || friend.display_name;
+  const theme = resolveTheme(chatSettings.theme_type, chatSettings.theme_value, accent);
+  const isBlocked = chatSettings.blocked;
+  const onCall = () => {
+    if (isBlocked) { toast.error("Unblock to call"); return; }
+    call.startCall(friend.id, shownName, friend.avatar_url);
+  };
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -224,11 +232,19 @@ function ChatPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div className="-mt-10">
-            <Avatar url={friend.avatar_url} name={friend.display_name} accent={friend.accent_color} size={64} ring />
+            <Avatar url={friend.avatar_url} name={shownName} accent={friend.accent_color} size={64} ring />
           </div>
           <div className="min-w-0 flex-1 pb-1">
-            <h2 className="truncate text-lg font-bold" style={friendNameStyle}>{friend.display_name}</h2>
+            <h2 className={`truncate text-lg font-bold ${chatSettings.nickname ? "" : friendNameAnim}`} style={chatSettings.nickname ? undefined : friendNameStyle}>{shownName}</h2>
             <p className="truncate text-xs text-muted-foreground">@{friend.username} {friend.bio && <span className="ml-2 italic opacity-80">· {friend.bio}</span>}</p>
+          </div>
+          <div className="flex items-center gap-1.5 pb-1">
+            <button onClick={onCall} disabled={isBlocked} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground transition disabled:opacity-40" title="Voice call">
+              <Phone className="h-4 w-4" />
+            </button>
+            <button onClick={() => setSettingsOpen(true)} className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground transition" title="Chat settings">
+              <SettingsIcon className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>
