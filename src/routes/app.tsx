@@ -115,7 +115,7 @@ function AppLayout() {
             <div className="flex items-center gap-2 border-t border-sidebar-border bg-sidebar-accent/40 p-2.5">
               <Avatar url={profile.avatar_url} name={profile.display_name} accent={profile.accent_color} size={36} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold" style={displayNameStyle(profile.display_name_font, profile.display_name_color)}>{profile.display_name}</p>
+                <p className={`truncate text-sm font-semibold ${displayNameClass((profile as any).display_name_animation)}`} style={displayNameStyle(profile.display_name_font, profile.display_name_color)}>{profile.display_name}</p>
                 <p className="truncate text-xs text-muted-foreground">@{profile.username}</p>
               </div>
               <button onClick={toggle} className="rounded-md p-2 hover:bg-sidebar-accent" title="Toggle theme">
