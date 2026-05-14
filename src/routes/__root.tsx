@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
+import { CallProvider } from "@/hooks/use-call";
+import { CallOverlay } from "@/components/chat/call-overlay";
 import { Toaster } from "sonner";
 
 function NotFoundComponent() {
