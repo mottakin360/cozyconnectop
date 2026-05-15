@@ -82,6 +82,7 @@ function SettingsPage() {
       display_name_font: nameFont,
       display_name_color: nameColor || null,
       display_name_animation: nameAnim,
+      profile_decoration: decoration,
     } as any).eq("id", user.id);
     setSaving(false);
     if (error) toast.error(error.message);
