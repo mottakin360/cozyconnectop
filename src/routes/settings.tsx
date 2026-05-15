@@ -26,6 +26,7 @@ function SettingsPage() {
   const [nameColor, setNameColor] = useState<string>("");
   const [nameAnim, setNameAnim] = useState<string>("none");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [decoration, setDecoration] = useState<string>("none");
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const avatarRef = useRef<HTMLInputElement>(null);
