@@ -168,7 +168,7 @@ function ChatPage() {
     const { error } = await supabase.from("messages").insert(payload);
     setSending(false);
     if (error) toast.error(error.message);
-    else setReplyTo(null);
+    else { setReplyTo(null); playMessageSent(); }
   };
 
   const onSubmit = async (e: React.FormEvent) => {
