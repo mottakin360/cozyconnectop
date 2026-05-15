@@ -83,7 +83,10 @@ function ChatPage() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (payload) => {
         const m = payload.new as Message;
         const involved = (m.sender_id === user.id && m.receiver_id === friendId) || (m.sender_id === friendId && m.receiver_id === user.id);
-        if (involved) setMessages((prev) => prev.some((x) => x.id === m.id) ? prev : [...prev, m]);
+        if (involved) {
+          setMessages((prev) => prev.some((x) => x.id === m.id) ? prev : [...prev, m]);
+          if (m.sender_id === friendId) playMessageReceived();
+        }
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages" }, (payload) => {
         const m = payload.new as Message;
@@ -91,7 +94,11 @@ function ChatPage() {
       })
       .on("postgres_changes", { event: "DELETE", schema: "public", table: "messages" }, (payload) => {
         const m = payload.old as Message;
-        setMessages((prev) => prev.filter((x) => x.id !== m.id));
+        setMessages((prev) => {
+          if (!prev.some((x) => x.id === m.id)) return prev;
+          playMessageDeleted();
+          return prev.filter((x) => x.id !== m.id);
+        });
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "message_reactions" }, (payload) => {
         const r = payload.new as Reaction;
@@ -107,6 +114,12 @@ function ChatPage() {
           setFriendTyping(true);
           if (friendTypingTimerRef.current) window.clearTimeout(friendTypingTimerRef.current);
           friendTypingTimerRef.current = window.setTimeout(() => setFriendTyping(false), 2500);
+        }
+      })
+      .on("broadcast", { event: "theme" }, (payload) => {
+        const p = payload.payload as any;
+        if (p?.from === friendId) {
+          setChatSettings((prev) => ({ ...prev, theme_type: p.theme_type, theme_value: p.theme_value }));
         }
       })
       .subscribe();
