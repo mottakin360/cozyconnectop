@@ -112,7 +112,7 @@ export function FriendsListPanel({ currentUserId }: { currentUserId: string }) {
                   className={`group flex items-center gap-2.5 rounded-lg px-2 py-2 transition ${active ? "bg-sidebar-accent" : "hover:bg-sidebar-accent/60"}`}
                 >
                   <div className="relative">
-                    <Avatar url={f.avatar_url} name={shown} accent={f.accent_color} size={36} />
+                    <Avatar url={f.avatar_url} name={shown} accent={f.accent_color} size={36} decoration={f.profile_decoration} />
                     {f.unread > 0 && (
                       <span className="absolute -right-1 -top-1 grid h-2.5 w-2.5 place-items-center rounded-full bg-primary ring-2 ring-sidebar" />
                     )}
