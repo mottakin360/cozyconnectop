@@ -284,7 +284,7 @@ function ChatPage() {
                   exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
                   className={`group/msg relative flex gap-2 ${mine ? "justify-end" : "justify-start"} ${groupStart ? "mt-3" : ""}`}
                 >
-                  {!mine && groupStart && <Avatar url={friend.avatar_url} name={friend.display_name} accent={friend.accent_color} size={32} />}
+                  {!mine && groupStart && <Avatar url={friend.avatar_url} name={friend.display_name} accent={friend.accent_color} size={32} decoration={friend.profile_decoration} />}
                   {!mine && !groupStart && <div className="w-8 shrink-0" />}
                   <div className={`max-w-[78%] ${mine ? "items-end" : "items-start"} flex flex-col`}>
                     {groupStart && (
