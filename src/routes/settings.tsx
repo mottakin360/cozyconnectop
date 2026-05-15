@@ -185,6 +185,17 @@ function SettingsPage() {
                   ))}
                 </div>
               </Field>
+              <Field label="Profile decoration (visible to everyone)">
+                <div className="flex flex-wrap gap-2">
+                  {DECORATION_OPTIONS.map((d) => (
+                    <button key={d.id} type="button" onClick={() => setDecoration(d.id)}
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition ${decoration === d.id ? "border-primary bg-primary/10" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}>
+                      <Avatar url={avatarUrl} name={displayName || profile.username} accent={accent} size={28} decoration={d.id} />
+                      <span className="text-xs">{d.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </Field>
               <Field label="Bio">
                 <textarea value={bio} onChange={(e) => setBio(e.target.value)} maxLength={200} rows={3} placeholder="A short bio..." className="w-full resize-none rounded-lg border border-border bg-input px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring" />
               </Field>
