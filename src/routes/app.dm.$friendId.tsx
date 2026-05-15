@@ -403,7 +403,7 @@ function ChatPage() {
                 exit={{ opacity: 0, y: 6 }}
                 className="mt-2 flex items-center gap-2"
               >
-                <Avatar url={friend.avatar_url} name={friend.display_name} accent={friend.accent_color} size={28} />
+                <Avatar url={friend.avatar_url} name={friend.display_name} accent={friend.accent_color} size={28} decoration={friend.profile_decoration} />
                 <div className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-bubble-other px-3.5 py-2.5 shadow-soft">
                   {[0, 150, 300].map((d) => (
                     <span
