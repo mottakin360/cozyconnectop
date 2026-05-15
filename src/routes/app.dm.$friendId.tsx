@@ -482,7 +482,12 @@ function ChatPage() {
         friendDisplayName={friend.display_name}
         fallbackAccent={accent}
         initial={chatSettings}
-        onSaved={(s) => setChatSettings(s)}
+        onSaved={(s) => {
+          setChatSettings(s);
+          if (channelRef.current && user) {
+            channelRef.current.send({ type: "broadcast", event: "theme", payload: { from: user.id, theme_type: s.theme_type, theme_value: s.theme_value } });
+          }
+        }}
       />
     </div>
   );
