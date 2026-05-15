@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
 import { displayNameStyle, displayNameClass } from "@/lib/display-name";
 
-type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; accent_color: string | null; display_name_font: string | null; display_name_color: string | null; display_name_animation: string | null };
+type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; accent_color: string | null; display_name_font: string | null; display_name_color: string | null; display_name_animation: string | null; profile_decoration: string | null };
 type FriendItem = Profile & { unread: number; lastAt: number; nickname: string | null; blocked: boolean };
 
 export function FriendsListPanel({ currentUserId }: { currentUserId: string }) {
@@ -16,7 +16,7 @@ export function FriendsListPanel({ currentUserId }: { currentUserId: string }) {
   const activeFriendId = params.friendId;
 
   const load = async () => {
-    const cols = "id,username,display_name,avatar_url,accent_color,display_name_font,display_name_color,display_name_animation";
+    const cols = "id,username,display_name,avatar_url,accent_color,display_name_font,display_name_color,display_name_animation,profile_decoration";
     const { data: rels } = await supabase
       .from("friendships")
       .select(`user_a, user_b, a:user_a(${cols}), b:user_b(${cols})`)
