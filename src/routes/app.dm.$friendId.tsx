@@ -11,12 +11,13 @@ import { applyEmojiShortcuts } from "@/lib/emoji-shortcuts";
 import { ChatSettingsSheet, type ChatSettings } from "@/components/chat/chat-settings-sheet";
 import { resolveTheme } from "@/lib/chat-themes";
 import { useCall } from "@/hooks/use-call";
+import { playMessageSent, playMessageReceived, playMessageDeleted } from "@/lib/sounds";
 
 export const Route = createFileRoute("/app/dm/$friendId")({
   component: ChatPage,
 });
 
-type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; banner_url: string | null; bio: string | null; accent_color: string | null; display_name_font?: string | null; display_name_color?: string | null; display_name_animation?: string | null };
+type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; banner_url: string | null; bio: string | null; accent_color: string | null; display_name_font?: string | null; display_name_color?: string | null; display_name_animation?: string | null; profile_decoration?: string | null };
 type Message = { id: string; sender_id: string; receiver_id: string; content: string | null; image_url: string | null; created_at: string; reply_to_id?: string | null; read_at?: string | null };
 type Reaction = { id: string; message_id: string; user_id: string; emoji: string };
 
