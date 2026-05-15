@@ -19,6 +19,7 @@ export type VoiceProcessor = {
 
 export function createVoiceProcessor(input: MediaStream): VoiceProcessor {
   const ctx = new AudioContext();
+  if (ctx.state === "suspended") ctx.resume().catch(() => {});
   const source = ctx.createMediaStreamSource(input);
   const dest = ctx.createMediaStreamDestination();
 

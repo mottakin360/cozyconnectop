@@ -224,6 +224,7 @@ export type Database = {
           display_name_color: string | null
           display_name_font: string | null
           id: string
+          profile_decoration: string | null
           updated_at: string
           username: string
         }
@@ -238,6 +239,7 @@ export type Database = {
           display_name_color?: string | null
           display_name_font?: string | null
           id: string
+          profile_decoration?: string | null
           updated_at?: string
           username: string
         }
@@ -252,6 +254,7 @@ export type Database = {
           display_name_color?: string | null
           display_name_font?: string | null
           id?: string
+          profile_decoration?: string | null
           updated_at?: string
           username?: string
         }

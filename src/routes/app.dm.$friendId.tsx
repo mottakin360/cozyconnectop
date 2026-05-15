@@ -11,12 +11,13 @@ import { applyEmojiShortcuts } from "@/lib/emoji-shortcuts";
 import { ChatSettingsSheet, type ChatSettings } from "@/components/chat/chat-settings-sheet";
 import { resolveTheme } from "@/lib/chat-themes";
 import { useCall } from "@/hooks/use-call";
+import { playMessageSent, playMessageReceived, playMessageDeleted } from "@/lib/sounds";
 
 export const Route = createFileRoute("/app/dm/$friendId")({
   component: ChatPage,
 });
 
-type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; banner_url: string | null; bio: string | null; accent_color: string | null; display_name_font?: string | null; display_name_color?: string | null; display_name_animation?: string | null };
+type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; banner_url: string | null; bio: string | null; accent_color: string | null; display_name_font?: string | null; display_name_color?: string | null; display_name_animation?: string | null; profile_decoration?: string | null };
 type Message = { id: string; sender_id: string; receiver_id: string; content: string | null; image_url: string | null; created_at: string; reply_to_id?: string | null; read_at?: string | null };
 type Reaction = { id: string; message_id: string; user_id: string; emoji: string };
 
@@ -82,7 +83,10 @@ function ChatPage() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (payload) => {
         const m = payload.new as Message;
         const involved = (m.sender_id === user.id && m.receiver_id === friendId) || (m.sender_id === friendId && m.receiver_id === user.id);
-        if (involved) setMessages((prev) => prev.some((x) => x.id === m.id) ? prev : [...prev, m]);
+        if (involved) {
+          setMessages((prev) => prev.some((x) => x.id === m.id) ? prev : [...prev, m]);
+          if (m.sender_id === friendId) playMessageReceived();
+        }
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages" }, (payload) => {
         const m = payload.new as Message;
@@ -90,7 +94,11 @@ function ChatPage() {
       })
       .on("postgres_changes", { event: "DELETE", schema: "public", table: "messages" }, (payload) => {
         const m = payload.old as Message;
-        setMessages((prev) => prev.filter((x) => x.id !== m.id));
+        setMessages((prev) => {
+          if (!prev.some((x) => x.id === m.id)) return prev;
+          playMessageDeleted();
+          return prev.filter((x) => x.id !== m.id);
+        });
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "message_reactions" }, (payload) => {
         const r = payload.new as Reaction;
@@ -106,6 +114,12 @@ function ChatPage() {
           setFriendTyping(true);
           if (friendTypingTimerRef.current) window.clearTimeout(friendTypingTimerRef.current);
           friendTypingTimerRef.current = window.setTimeout(() => setFriendTyping(false), 2500);
+        }
+      })
+      .on("broadcast", { event: "theme" }, (payload) => {
+        const p = payload.payload as any;
+        if (p?.from === friendId) {
+          setChatSettings((prev) => ({ ...prev, theme_type: p.theme_type, theme_value: p.theme_value }));
         }
       })
       .subscribe();
@@ -154,7 +168,7 @@ function ChatPage() {
     const { error } = await supabase.from("messages").insert(payload);
     setSending(false);
     if (error) toast.error(error.message);
-    else setReplyTo(null);
+    else { setReplyTo(null); playMessageSent(); }
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -197,7 +211,7 @@ function ChatPage() {
     setMenuFor(null);
     const { error } = await supabase.from("messages").delete().eq("id", id);
     if (error) toast.error(error.message);
-    else setMessages((prev) => prev.filter((m) => m.id !== id));
+    else { setMessages((prev) => prev.filter((m) => m.id !== id)); playMessageDeleted(); }
   };
 
   if (!friend) {
@@ -232,7 +246,7 @@ function ChatPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div className="-mt-10">
-            <Avatar url={friend.avatar_url} name={shownName} accent={friend.accent_color} size={64} ring />
+            <Avatar url={friend.avatar_url} name={shownName} accent={friend.accent_color} size={64} ring decoration={friend.profile_decoration} />
           </div>
           <div className="min-w-0 flex-1 pb-1">
             <h2 className={`truncate text-lg font-bold ${chatSettings.nickname ? "" : friendNameAnim}`} style={chatSettings.nickname ? undefined : friendNameStyle}>{shownName}</h2>
@@ -270,7 +284,7 @@ function ChatPage() {
                   exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
                   className={`group/msg relative flex gap-2 ${mine ? "justify-end" : "justify-start"} ${groupStart ? "mt-3" : ""}`}
                 >
-                  {!mine && groupStart && <Avatar url={friend.avatar_url} name={friend.display_name} accent={friend.accent_color} size={32} />}
+                  {!mine && groupStart && <Avatar url={friend.avatar_url} name={friend.display_name} accent={friend.accent_color} size={32} decoration={friend.profile_decoration} />}
                   {!mine && !groupStart && <div className="w-8 shrink-0" />}
                   <div className={`max-w-[78%] ${mine ? "items-end" : "items-start"} flex flex-col`}>
                     {groupStart && (
@@ -389,7 +403,7 @@ function ChatPage() {
                 exit={{ opacity: 0, y: 6 }}
                 className="mt-2 flex items-center gap-2"
               >
-                <Avatar url={friend.avatar_url} name={friend.display_name} accent={friend.accent_color} size={28} />
+                <Avatar url={friend.avatar_url} name={friend.display_name} accent={friend.accent_color} size={28} decoration={friend.profile_decoration} />
                 <div className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-bubble-other px-3.5 py-2.5 shadow-soft">
                   {[0, 150, 300].map((d) => (
                     <span
@@ -468,7 +482,12 @@ function ChatPage() {
         friendDisplayName={friend.display_name}
         fallbackAccent={accent}
         initial={chatSettings}
-        onSaved={(s) => setChatSettings(s)}
+        onSaved={(s) => {
+          setChatSettings(s);
+          if (channelRef.current && user) {
+            channelRef.current.send({ type: "broadcast", event: "theme", payload: { from: user.id, theme_type: s.theme_type, theme_value: s.theme_value } });
+          }
+        }}
       />
     </div>
   );

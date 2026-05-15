@@ -7,6 +7,7 @@ import { ArrowLeft, Camera, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar } from "@/components/chat/avatar";
 import { FONT_OPTIONS, ANIMATION_OPTIONS, displayNameStyle, displayNameClass } from "@/lib/display-name";
+import { DECORATION_OPTIONS } from "@/lib/profile-decorations";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Settings — Cozy Connect" }] }),
@@ -25,6 +26,7 @@ function SettingsPage() {
   const [nameColor, setNameColor] = useState<string>("");
   const [nameAnim, setNameAnim] = useState<string>("none");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [decoration, setDecoration] = useState<string>("none");
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const avatarRef = useRef<HTMLInputElement>(null);
@@ -39,6 +41,7 @@ function SettingsPage() {
       setNameFont(((profile as any).display_name_font as string) ?? "default");
       setNameColor(((profile as any).display_name_color as string) ?? "");
       setNameAnim(((profile as any).display_name_animation as string) ?? "none");
+      setDecoration(((profile as any).profile_decoration as string) ?? "none");
       setAvatarUrl(profile.avatar_url);
       setBannerUrl(profile.banner_url);
     }
@@ -79,6 +82,7 @@ function SettingsPage() {
       display_name_font: nameFont,
       display_name_color: nameColor || null,
       display_name_animation: nameAnim,
+      profile_decoration: decoration,
     } as any).eq("id", user.id);
     setSaving(false);
     if (error) toast.error(error.message);
@@ -115,7 +119,7 @@ function SettingsPage() {
           <div className="px-5 pb-5">
             <div className="-mt-10 flex items-end gap-4">
               <button type="button" onClick={() => avatarRef.current?.click()} className="group relative" title="Change profile picture">
-                <Avatar url={avatarUrl} name={displayName || profile.username} accent={accent} size={84} ring />
+                <Avatar url={avatarUrl} name={displayName || profile.username} accent={accent} size={84} ring decoration={decoration} />
                 <div className="absolute inset-0 grid place-items-center rounded-full bg-black/40 opacity-0 transition group-hover:opacity-100">
                   <Camera className="h-5 w-5 text-white" />
                 </div>
@@ -177,6 +181,17 @@ function SettingsPage() {
                     <button key={a.id} type="button" onClick={() => setNameAnim(a.id)}
                       className={`rounded-lg border px-3 py-1.5 text-sm transition ${nameAnim === a.id ? "border-primary bg-primary/10" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}>
                       <span className={a.className} style={displayNameStyle(nameFont, nameColor)}>{a.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </Field>
+              <Field label="Profile decoration (visible to everyone)">
+                <div className="flex flex-wrap gap-2">
+                  {DECORATION_OPTIONS.map((d) => (
+                    <button key={d.id} type="button" onClick={() => setDecoration(d.id)}
+                      className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm transition ${decoration === d.id ? "border-primary bg-primary/10" : "border-border bg-card text-muted-foreground hover:text-foreground"}`}>
+                      <Avatar url={avatarUrl} name={displayName || profile.username} accent={accent} size={28} decoration={d.id} />
+                      <span className="text-xs">{d.label}</span>
                     </button>
                   ))}
                 </div>

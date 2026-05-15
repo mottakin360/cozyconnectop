@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
 import { displayNameStyle, displayNameClass } from "@/lib/display-name";
 
-type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; accent_color: string | null; display_name_font: string | null; display_name_color: string | null; display_name_animation: string | null };
+type Profile = { id: string; username: string; display_name: string; avatar_url: string | null; accent_color: string | null; display_name_font: string | null; display_name_color: string | null; display_name_animation: string | null; profile_decoration: string | null };
 type FriendItem = Profile & { unread: number; lastAt: number; nickname: string | null; blocked: boolean };
 
 export function FriendsListPanel({ currentUserId }: { currentUserId: string }) {
@@ -16,7 +16,7 @@ export function FriendsListPanel({ currentUserId }: { currentUserId: string }) {
   const activeFriendId = params.friendId;
 
   const load = async () => {
-    const cols = "id,username,display_name,avatar_url,accent_color,display_name_font,display_name_color,display_name_animation";
+    const cols = "id,username,display_name,avatar_url,accent_color,display_name_font,display_name_color,display_name_animation,profile_decoration";
     const { data: rels } = await supabase
       .from("friendships")
       .select(`user_a, user_b, a:user_a(${cols}), b:user_b(${cols})`)
@@ -112,7 +112,7 @@ export function FriendsListPanel({ currentUserId }: { currentUserId: string }) {
                   className={`group flex items-center gap-2.5 rounded-lg px-2 py-2 transition ${active ? "bg-sidebar-accent" : "hover:bg-sidebar-accent/60"}`}
                 >
                   <div className="relative">
-                    <Avatar url={f.avatar_url} name={shown} accent={f.accent_color} size={36} />
+                    <Avatar url={f.avatar_url} name={shown} accent={f.accent_color} size={36} decoration={f.profile_decoration} />
                     {f.unread > 0 && (
                       <span className="absolute -right-1 -top-1 grid h-2.5 w-2.5 place-items-center rounded-full bg-primary ring-2 ring-sidebar" />
                     )}

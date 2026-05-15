@@ -10,6 +10,7 @@ import { FriendsListPanel } from "@/components/chat/friends-list-panel";
 import { AddFriendDialog } from "@/components/chat/add-friend-dialog";
 import { Avatar } from "@/components/chat/avatar";
 import { displayNameStyle, displayNameClass } from "@/lib/display-name";
+import { playNotify } from "@/lib/sounds";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
@@ -31,13 +32,17 @@ function AppLayout() {
 
   useEffect(() => {
     if (!user) return;
+    let prev = -1;
     const load = async () => {
       const { count } = await supabase
         .from("friend_requests")
         .select("*", { count: "exact", head: true })
         .eq("receiver_id", user.id)
         .eq("status", "pending");
-      setPendingCount(count ?? 0);
+      const c = count ?? 0;
+      if (prev !== -1 && c > prev) playNotify();
+      prev = c;
+      setPendingCount(c);
     };
     load();
     const ch = supabase.channel("fr-count")
@@ -113,7 +118,7 @@ function AppLayout() {
 
             {/* Profile bar */}
             <div className="flex items-center gap-2 border-t border-sidebar-border bg-sidebar-accent/40 p-2.5">
-              <Avatar url={profile.avatar_url} name={profile.display_name} accent={profile.accent_color} size={36} />
+              <Avatar url={profile.avatar_url} name={profile.display_name} accent={profile.accent_color} size={36} decoration={(profile as any).profile_decoration} />
               <div className="min-w-0 flex-1">
                 <p className={`truncate text-sm font-semibold ${displayNameClass((profile as any).display_name_animation)}`} style={displayNameStyle(profile.display_name_font, profile.display_name_color)}>{profile.display_name}</p>
                 <p className="truncate text-xs text-muted-foreground">@{profile.username}</p>

@@ -2,10 +2,9 @@ import { createContext, useContext, useEffect, useRef, useState, ReactNode, useC
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { createVoiceProcessor, type VoiceEffect, type VoiceProcessor } from "@/lib/voice-effects";
+import { startOutgoingRing, stopOutgoingRing, startIncomingRing, stopIncomingRing } from "@/lib/sounds";
 
 type CallStatus = "idle" | "outgoing" | "incoming" | "connected" | "ended";
-
-type IncomingInfo = { fromUserId: string; fromName: string; fromAvatar: string | null };
 
 type CallCtx = {
   status: CallStatus;
@@ -41,7 +40,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
   const localStreamRef = useRef<MediaStream | null>(null);
   const processorRef = useRef<VoiceProcessor | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const inboundChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const peerChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const peerChannelIdRef = useRef<string | null>(null);
   const incomingOfferRef = useRef<RTCSessionDescriptionInit | null>(null);
   const pendingIceRef = useRef<RTCIceCandidateInit[]>([]);
   const startedAtRef = useRef<number>(0);
@@ -64,10 +65,10 @@ export function CallProvider({ children }: { children: ReactNode }) {
     ch.on("broadcast", { event: "signal" }, (payload) => {
       handleSignal(payload.payload as any);
     }).subscribe();
-    channelRef.current = ch;
+    inboundChannelRef.current = ch;
     return () => {
       supabase.removeChannel(ch);
-      channelRef.current = null;
+      inboundChannelRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
@@ -75,24 +76,47 @@ export function CallProvider({ children }: { children: ReactNode }) {
   // Duration tick
   useEffect(() => {
     if (status === "connected") {
+      stopOutgoingRing(); stopIncomingRing();
       startedAtRef.current = Date.now();
       tickRef.current = window.setInterval(() => setDurationMs(Date.now() - startedAtRef.current), 500);
     } else {
       if (tickRef.current) { window.clearInterval(tickRef.current); tickRef.current = null; }
       if (status === "idle") setDurationMs(0);
+      if (status === "ended" || status === "idle") { stopOutgoingRing(); stopIncomingRing(); }
     }
     return () => { if (tickRef.current) { window.clearInterval(tickRef.current); tickRef.current = null; } };
   }, [status]);
 
-  const sendTo = (toUserId: string, msg: any) => {
+  const ensurePeerChannel = (toUserId: string) => {
+    if (peerChannelIdRef.current === toUserId && peerChannelRef.current) return peerChannelRef.current;
+    if (peerChannelRef.current) {
+      try { supabase.removeChannel(peerChannelRef.current); } catch {}
+    }
     const ch = supabase.channel(`call:${toUserId}`);
-    ch.subscribe((s) => {
-      if (s === "SUBSCRIBED") {
-        ch.send({ type: "broadcast", event: "signal", payload: { ...msg, from: user?.id } }).finally(() => {
-          setTimeout(() => supabase.removeChannel(ch), 200);
-        });
-      }
-    });
+    ch.subscribe();
+    peerChannelRef.current = ch;
+    peerChannelIdRef.current = toUserId;
+    return ch;
+  };
+
+  const sendTo = async (toUserId: string, msg: any) => {
+    const ch = ensurePeerChannel(toUserId);
+    // Try a few times in case channel hasn't subscribed yet
+    for (let i = 0; i < 10; i++) {
+      try {
+        const res = await ch.send({ type: "broadcast", event: "signal", payload: { ...msg, from: user?.id } });
+        if (res === "ok") return;
+      } catch {}
+      await new Promise((r) => setTimeout(r, 120));
+    }
+  };
+
+  const teardownPeerChannel = () => {
+    if (peerChannelRef.current) {
+      try { supabase.removeChannel(peerChannelRef.current); } catch {}
+    }
+    peerChannelRef.current = null;
+    peerChannelIdRef.current = null;
   };
 
   const cleanup = useCallback(() => {
@@ -105,6 +129,9 @@ export function CallProvider({ children }: { children: ReactNode }) {
     if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null;
     incomingOfferRef.current = null;
     pendingIceRef.current = [];
+    teardownPeerChannel();
+    stopOutgoingRing();
+    stopIncomingRing();
   }, []);
 
   const buildPeerConnection = (remotePeerId: string) => {
@@ -112,6 +139,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
     pc.ontrack = (ev) => {
       if (remoteAudioRef.current) {
         remoteAudioRef.current.srcObject = ev.streams[0];
+        remoteAudioRef.current.play().catch(() => {});
       }
     };
     pc.onicecandidate = (ev) => {
@@ -142,14 +170,15 @@ export function CallProvider({ children }: { children: ReactNode }) {
     if (!user || !msg) return;
     const from = msg.from as string;
     if (msg.kind === "offer") {
-      // Incoming call
       incomingOfferRef.current = msg.sdp;
       setPeerId(from);
       setPeerName(msg.fromName || "Unknown");
       setPeerAvatar(msg.fromAvatar || null);
       setStatus("incoming");
+      startIncomingRing();
     } else if (msg.kind === "answer") {
       const pc = pcRef.current; if (!pc) return;
+      stopOutgoingRing();
       await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
       for (const c of pendingIceRef.current) {
         await pc.addIceCandidate(new RTCIceCandidate(c)).catch(() => {});
@@ -162,10 +191,7 @@ export function CallProvider({ children }: { children: ReactNode }) {
       } else {
         await pc.addIceCandidate(new RTCIceCandidate(msg.candidate)).catch(() => {});
       }
-    } else if (msg.kind === "hangup") {
-      setStatus("ended");
-      setTimeout(() => { cleanup(); setStatus("idle"); setPeerId(null); }, 1200);
-    } else if (msg.kind === "decline") {
+    } else if (msg.kind === "hangup" || msg.kind === "decline") {
       setStatus("ended");
       setTimeout(() => { cleanup(); setStatus("idle"); setPeerId(null); }, 1200);
     }
@@ -175,23 +201,35 @@ export function CallProvider({ children }: { children: ReactNode }) {
     if (!user) return;
     setPeerId(toId); setPeerName(toName); setPeerAvatar(toAvatar);
     setStatus("outgoing");
+    startOutgoingRing();
+    ensurePeerChannel(toId);
     const pc = buildPeerConnection(toId);
     const out = await acquireMic();
     out.getTracks().forEach((t) => pc.addTrack(t, out));
     const offer = await pc.createOffer({ offerToReceiveAudio: true });
     await pc.setLocalDescription(offer);
-    sendTo(toId, { kind: "offer", sdp: offer, fromName: profile?.display_name ?? "Unknown", fromAvatar: profile?.avatar_url ?? null });
+    await sendTo(toId, { kind: "offer", sdp: offer, fromName: profile?.display_name ?? "Unknown", fromAvatar: profile?.avatar_url ?? null });
   };
 
   const acceptCall = async () => {
     if (!peerId || !incomingOfferRef.current) return;
+    stopIncomingRing();
+    ensurePeerChannel(peerId);
     const pc = buildPeerConnection(peerId);
-    const out = await acquireMic();
+    let out: MediaStream;
+    try {
+      out = await acquireMic();
+    } catch (err: any) {
+      // Mic permission failed — bail cleanly
+      setStatus("ended");
+      setTimeout(() => { cleanup(); setStatus("idle"); setPeerId(null); }, 1200);
+      return;
+    }
     out.getTracks().forEach((t) => pc.addTrack(t, out));
     await pc.setRemoteDescription(new RTCSessionDescription(incomingOfferRef.current));
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
-    sendTo(peerId, { kind: "answer", sdp: answer });
+    await sendTo(peerId, { kind: "answer", sdp: answer });
     for (const c of pendingIceRef.current) {
       await pc.addIceCandidate(new RTCIceCandidate(c)).catch(() => {});
     }
