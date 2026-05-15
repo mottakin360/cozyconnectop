@@ -41,6 +41,7 @@ function SettingsPage() {
       setNameFont(((profile as any).display_name_font as string) ?? "default");
       setNameColor(((profile as any).display_name_color as string) ?? "");
       setNameAnim(((profile as any).display_name_animation as string) ?? "none");
+      setDecoration(((profile as any).profile_decoration as string) ?? "none");
       setAvatarUrl(profile.avatar_url);
       setBannerUrl(profile.banner_url);
     }
