@@ -246,7 +246,7 @@ function ChatPage() {
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div className="-mt-10">
-            <Avatar url={friend.avatar_url} name={shownName} accent={friend.accent_color} size={64} ring />
+            <Avatar url={friend.avatar_url} name={shownName} accent={friend.accent_color} size={64} ring decoration={friend.profile_decoration} />
           </div>
           <div className="min-w-0 flex-1 pb-1">
             <h2 className={`truncate text-lg font-bold ${chatSettings.nickname ? "" : friendNameAnim}`} style={chatSettings.nickname ? undefined : friendNameStyle}>{shownName}</h2>
