@@ -211,7 +211,7 @@ function ChatPage() {
     setMenuFor(null);
     const { error } = await supabase.from("messages").delete().eq("id", id);
     if (error) toast.error(error.message);
-    else setMessages((prev) => prev.filter((m) => m.id !== id));
+    else { setMessages((prev) => prev.filter((m) => m.id !== id)); playMessageDeleted(); }
   };
 
   if (!friend) {
