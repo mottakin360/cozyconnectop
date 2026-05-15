@@ -32,13 +32,17 @@ function AppLayout() {
 
   useEffect(() => {
     if (!user) return;
+    let prev = -1;
     const load = async () => {
       const { count } = await supabase
         .from("friend_requests")
         .select("*", { count: "exact", head: true })
         .eq("receiver_id", user.id)
         .eq("status", "pending");
-      setPendingCount(count ?? 0);
+      const c = count ?? 0;
+      if (prev !== -1 && c > prev) playNotify();
+      prev = c;
+      setPendingCount(c);
     };
     load();
     const ch = supabase.channel("fr-count")
