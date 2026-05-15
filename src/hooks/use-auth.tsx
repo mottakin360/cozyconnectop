@@ -13,6 +13,7 @@ type Profile = {
   display_name_font: string | null;
   display_name_color: string | null;
   display_name_animation: string | null;
+  profile_decoration: string | null;
 };
 
 type AuthCtx = {
