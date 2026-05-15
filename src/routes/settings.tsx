@@ -119,7 +119,7 @@ function SettingsPage() {
           <div className="px-5 pb-5">
             <div className="-mt-10 flex items-end gap-4">
               <button type="button" onClick={() => avatarRef.current?.click()} className="group relative" title="Change profile picture">
-                <Avatar url={avatarUrl} name={displayName || profile.username} accent={accent} size={84} ring />
+                <Avatar url={avatarUrl} name={displayName || profile.username} accent={accent} size={84} ring decoration={decoration} />
                 <div className="absolute inset-0 grid place-items-center rounded-full bg-black/40 opacity-0 transition group-hover:opacity-100">
                   <Camera className="h-5 w-5 text-white" />
                 </div>
