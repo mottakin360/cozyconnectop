@@ -10,6 +10,7 @@ import { FriendsListPanel } from "@/components/chat/friends-list-panel";
 import { AddFriendDialog } from "@/components/chat/add-friend-dialog";
 import { Avatar } from "@/components/chat/avatar";
 import { displayNameStyle, displayNameClass } from "@/lib/display-name";
+import { playNotify } from "@/lib/sounds";
 
 export const Route = createFileRoute("/app")({
   component: AppLayout,
